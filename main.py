@@ -62,10 +62,10 @@ def menu(win):
     winWidth = win.getWidth()
     winHeight = win.getHeight()
 
-    logo = Image(Point(winWidth / 2, winHeight / 4), "logo.gif")
-    imgMethod = Image(Point(winWidth / 2, winHeight / 4 + 225), "method.gif")
-    imgMet1 = Image(Point(winWidth / 2, winHeight / 4 + 300), "met1.gif")
-    imgMet2 = Image(Point(winWidth / 2, winHeight / 4 + 350), "met2.gif")
+    logo = Image(Point(winWidth / 2, winHeight / 4), "images/logo.gif")
+    imgMethod = Image(Point(winWidth / 2, winHeight / 4 + 225), "images/method.gif")
+    imgMet1 = Image(Point(winWidth / 2, winHeight / 4 + 300), "images/met1.gif")
+    imgMet2 = Image(Point(winWidth / 2, winHeight / 4 + 350), "images/met2.gif")
 
     win.setBackground(color_rgb(255, 255, 255))
     logo.draw(win)
