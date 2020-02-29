@@ -1,12 +1,9 @@
 from graphics import *
 import time
-
-data = [[9, 7, 8, 8],
-     [5, 5, 1, 6],
-     [2, 1, 1, 4],
-     [7, 3, 7, 4]]
-sumX = [1, 2, 3, 4]
-sumY = [6, 7, 8, 9]
+import numpy as np
+from Node import *
+from Queue import *
+import pickle
 
 def resetColor(rect):
     for i in range(0, len(rect[0])-1):
@@ -20,9 +17,7 @@ def changeColor(rect, wip):
             if wip[i][j] == 1:
                 rect[i][j].setFill(color_rgb(0, 220, 220))
 
-
 def setDefault(win, n, data, sumX, sumY):
-
     rect = [[0 for x in range(n + 1)] for y in range(n + 1)]
 
     for x in range(n + 1):
@@ -51,120 +46,161 @@ def setDefault(win, n, data, sumX, sumY):
             txt.draw(win)
     return rect
 
-
 def createUI(n):
     width = 100*(n+3)
-    win = GraphWin("Pluszle", width, width+100)
-
+    win = GraphWin("Pluszle", width, width)
     return win
-
-def menu(win):
-    winWidth = win.getWidth()
-    winHeight = win.getHeight()
-
-    logo = Image(Point(winWidth / 2, winHeight / 4), "images/logo.gif")
-    imgMethod = Image(Point(winWidth / 2, winHeight / 4 + 225), "images/method.gif")
-    imgMet1 = Image(Point(winWidth / 2, winHeight / 4 + 300), "images/met1.gif")
-    imgMet2 = Image(Point(winWidth / 2, winHeight / 4 + 350), "images/met2.gif")
-
-    win.setBackground(color_rgb(255, 255, 255))
-    logo.draw(win)
-    imgMethod.draw(win)
-    imgMet1.draw(win)
-    imgMet2.draw(win)
-
-    while True:
-        algo = win.getKey()
-        if algo == '1' or algo == '2':
-            break
-    return algo
 
 def clear(win):
     for item in win.items[:]:
         item.undraw()
     win.update()
 
+def probNgoal(n):
+  prob = np.random.randint(1, 9, (n,n))
+  # goalState = np.random.random_integers(1, 2**n-1, n)
+  goalState = np.array([0, 0, 1, 7])
+  goalPosition = np.asarray([list(map(int, bin(x)[2:].zfill(4))) for x in goalState])
+
+  goalSum = [list(prob[i] * goalPosition[i]) for i in range(4)]
+  sumX = np.sum(goalSum, axis=0)
+  sumY = np.sum(goalSum, axis=1)
+  
+  return prob, goalState, goalPosition, goalSum, sumX, sumY
+
+def menu(win,winWidth,winHeight):
+    logo = Image(Point(winWidth / 4, winHeight / 16 + 2), "images/logo_small.gif")
+    logo.draw(win)
+    random = Image(Point(winWidth / 2 + 200, winHeight / 16 + 2), "images/random.gif")
+    random.draw(win)
+    
+    imgMethod = Image(Point(winWidth / 4, winHeight - 50), "images/method.gif")
+    imgMet1 = Image(Point(winWidth / 2 + 120, winHeight - 65), "images/met1.gif")
+    imgMet2 = Image(Point(winWidth / 2 + 120, winHeight - 30), "images/met2.gif")
+
+    imgMethod.draw(win)
+    imgMet1.draw(win)
+    imgMet2.draw(win)
+
+def convertIntToListBinary(goal):
+    searchGoal = []
+    for i in goal:
+        searchGoal.append([int(x) for x in list('{0:04b}'.format(i))])
+    return searchGoal 
+
+found = False # Search Flag
+
+def iterativeDeepeningDepthFirstSearch(root, goal, problemTable):
+    # Repeatedly depth-first search up-to a maximum depth of 6.
+    for maxDepth in range(0,len(goal)+1):
+        depthFirstSearch(root, maxDepth, goal, problemTable)
+
+def depthFirstSearch(root, maxDepth, goal, problemTable):
+    global found
+    if not found:
+        # print(root.getData(), convertIntToListBinary(root.getData()))
+        changeColor(problemTable, convertIntToListBinary(root.getData()))
+        
+        if(root.getData() == goal):
+            found = True
+            
+        # If reached the maximum depth, stop recursing.
+        if maxDepth <= 0:
+            return 
+        # Recurse for all children of node.
+        for i in range(0,root.getBranchSize()):
+            depthFirstSearch(root.branch[i], maxDepth-1, goal, problemTable)
+
+def breadthFirstSearch(root, goal, problemTable):
+    global found
+    q = Queue()
+    q.enQueue(root)
+    
+    while q.size() > 0 and not found:
+        node = q.deQueue()
+        #print(node.getData(), convertIntToListBinary(node.getData()))
+        changeColor(problemTable, convertIntToListBinary(node.getData()))
+        
+        if(node.getData() == goal):
+            found = True
+        # add all the children to the back of the queue
+        for i in range(0,node.getBranchSize()):
+            q.enQueue(node.branch[i])
+                            
 def main():
+    global found
+    data = [[0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0]]
+    
+    sumX = [0, 0, 0, 0]
+    sumY = [0, 0, 0, 0]
+
+    selectedPos = [[1, 0, 0, 1],
+                   [0, 0, 0, 0],
+                   [0, 0, 0, 0],
+                   [1, 0, 0, 1]]
+
+    goal = [0,0,0,0]
+    
     n = 4
-    selectedPos = [[0, 0, 1, 0],
-           [0, 0, 1, 1],
-           [1, 0, 0, 1],
-           [1, 0, 1, 0]]
 
     win = createUI(n)
 
-    algo = menu(win) #string
-
-    clear(win)
-
     win.setBackground(color_rgb(255, 255, 255))
-
+    winWidth = win.getWidth()
+    winHeight = win.getHeight()
+    
+    menu(win,winWidth,winHeight)
     problemTable = setDefault(win, n, data, sumX, sumY)
     changeColor(problemTable, selectedPos)
+    
+    start_time = time.time()
+    with open('data-4d.tree', 'rb') as data_file:
+        root = pickle.load(data_file)
+    stop_time = time.time()
+    print("Load tree time:",stop_time - start_time)
+    
+    
 
-    win.getMouse()
-    win.close()
+    while True:
+        key = win.getKey()
+        
+        if key == '0':
+            win.delete('all')
+            #clear(win)
+            prob, goal, selectedPos, goalSum, sumX, sumY = probNgoal(n)
+            data = prob.tolist() # Convert array to list
+            sumX = sumX.tolist()
+            sumY = sumY.tolist()
+            goal = goal.tolist()
+            selectedPos = selectedPos.tolist()
 
+            menu(win,winWidth,winHeight)    
+            problemTable = setDefault(win, n, data, sumX, sumY)
+            changeColor(problemTable, selectedPos)
+            print("Goal",goal)
+            # print("ID",id(problemTable))
+          
+        elif key=='1':
+            print('BFS Search Algorithm')
+            found = False
+            start_time = time.time()
+            breadthFirstSearch(root, goal, problemTable)
+            stop_time = time.time()
+            print("BFS  Search Time:" , stop_time - start_time, "s")
+            
+        elif key=='2':
+            print('IDFS Search Algorithm')
+            # print(convertIntToListBinary(goal))
+            found = False
+            start_time = time.time()
+            iterativeDeepeningDepthFirstSearch(root, goal, problemTable)
+            stop_time = time.time()
+            print("IDFS Search Time:" , stop_time - start_time, "s")
+            
+        elif key=='Escape':
+            win.close()
+    
 main()
-
-
-# test
-# def line(x1, y1, x2, y2):
-#     return Line(Point(x1, y1), Point(x2, y2))
-#
-# def main():
-#     win = GraphWin("Sum Number", 500, 500)
-#     win.setBackground(color_rgb(255, 255, 255))
-#
-#     # pt = Point(250, 250)
-#     # cir = Circle(pt, 50)
-#     # cir.setFill(color_rgb(100, 255, 50))
-#     # cir.draw(win)
-#     # pt.setOutline(color_rgb(255, 255, 0))
-#     # pt.draw(win)
-#
-#     # ln = line(250, 250, 250, 350)
-#     # ln.setOutline(color_rgb(0, 255, 255))
-#     # ln.setWidth(5)
-#     # ln.draw(win)
-#
-#     rect = Rectangle(Point(250, 250), Point(350, 350))
-#     rect.setOutline(color_rgb(0, 255, 255))
-#     rect.setWidth(5)
-#     rect.setFill(color_rgb(0, 100, 255))
-#     rect.draw(win)
-#
-#     cir = Circle(Point(250, 250), 50)
-#     cir.setOutline(color_rgb(0, 255, 255))
-#     cir.setWidth(5)
-#     cir.setFill(color_rgb(0, 100, 255))
-#     cir.draw(win)
-#
-#     # poly = Polygon(Point(40, 40), Point(100, 100),
-#     #                Point(40, 100), Point(300, 70),
-#     #                Point(450, 70))
-#     # poly.setFill(color_rgb(255, 255, 0))
-#     # poly.setOutline(color_rgb(0, 255, 255))
-#     # poly.setWidth(5)
-#     # poly.draw(win)
-#
-#     # txt = Text(Point(250, 250), "What's up?")
-#     # txt.setTextColor(color_rgb(0, 255, 0))
-#     # txt.setSize(20)
-#     # txt.setFace('courier')
-#     # txt.draw(win)
-#
-#     #Create our objects
-#     input_box = Entry(Point(250, 250), 10)
-#     input_box.draw(win)
-#     txt = Text(Point(250, 280), "")
-#     txt.draw(win)
-#
-#     #Wait to do stuffwith our objects
-#     while True:
-#         txt.setText(input_box.getText())
-#
-#     win.getMouse()
-#     win.close()
-#
-# main()
