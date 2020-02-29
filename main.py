@@ -126,20 +126,49 @@ def breadthFirstSearch(root, goal, problemTable):
         # add all the children to the back of the queue
         for i in range(0,node.getBranchSize()):
             q.enQueue(node.branch[i])
+            
+# Aomsin BFS Algorithm
+def isSameState(state1: np, state2: np):
+    return (state1 == state2).all()
+
+def formatState(state: np):
+    arraySize = state.shape[1] * (-1)
+    indexChecker = -1
+    formatState = state
+    while(indexChecker > arraySize): 
+        if formatState[0, indexChecker] == 16:
+            formatState[0, indexChecker] = 0
+            formatState[0, indexChecker-1] += 1
+        indexChecker -= 1
+    return formatState
+
+def doBreadthFirstSearch(startState: np, goalState: np, problemTable):
+    if startState.shape[1] != goalState.shape[0]:
+        print("! Error input: StartState size mismatch with GoalState!")
+        return
+    arraySize = goalState.shape[0]
+    currentState = startState
+    while not isSameState(currentState, goalState):
+        currentState[0, -1] += 1
+        currentState = formatState(currentState)
+        #print(currentState)
+        changeColor(problemTable, convertIntToListBinary(currentState.tolist()[0]))
+        
+    return currentState
                             
 def main():
     global found
-    data = [[0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0]]
+    data = [[1, 0, 0, 1],
+            [0, 1, 1, 0],
+            [0, 1, 1, 0],
+            [1, 0, 0, 1]]
     
     sumX = [0, 0, 0, 0]
     sumY = [0, 0, 0, 0]
 
     selectedPos = [[1, 0, 0, 1],
-                   [0, 0, 0, 0],
-                   [0, 0, 0, 0],
+                   [0, 1, 1, 0],
+                   [0, 1, 1, 0],
                    [1, 0, 0, 1]]
 
     goal = [0,0,0,0]
@@ -153,8 +182,17 @@ def main():
     winHeight = win.getHeight()
     
     menu(win,winWidth,winHeight)
+    
+    data, goal, selectedPos, goalSum, sumX, sumY = probNgoal(n)
+    data = data.tolist() # Convert array to list
+    sumX = sumX.tolist()
+    sumY = sumY.tolist()
+    goal = goal.tolist()
+    selectedPos = selectedPos.tolist()
+            
     problemTable = setDefault(win, n, data, sumX, sumY)
     changeColor(problemTable, selectedPos)
+    print("Goal: ",goal)
     
     start_time = time.time()
     with open('data-4d.tree', 'rb') as data_file:
@@ -170,8 +208,8 @@ def main():
         if key == '0':
             win.delete('all')
             #clear(win)
-            prob, goal, selectedPos, goalSum, sumX, sumY = probNgoal(n)
-            data = prob.tolist() # Convert array to list
+            data, goal, selectedPos, goalSum, sumX, sumY = probNgoal(n)
+            data = data.tolist() # Convert array to list
             sumX = sumX.tolist()
             sumY = sumY.tolist()
             goal = goal.tolist()
@@ -180,14 +218,20 @@ def main():
             menu(win,winWidth,winHeight)    
             problemTable = setDefault(win, n, data, sumX, sumY)
             changeColor(problemTable, selectedPos)
-            print("Goal",goal)
+            print("Goal: ",goal)
             # print("ID",id(problemTable))
           
         elif key=='1':
             print('BFS Search Algorithm')
             found = False
             start_time = time.time()
-            breadthFirstSearch(root, goal, problemTable)
+            # breadthFirstSearch(root, goal, problemTable)
+            
+            # Aomsin BFS
+            goalState = np.array(goal)
+            startState = np.zeros((1,len(goal)), dtype=np.int)
+            print(doBreadthFirstSearch(startState, goalState, problemTable))
+            
             stop_time = time.time()
             print("BFS  Search Time:" , stop_time - start_time, "s")
             

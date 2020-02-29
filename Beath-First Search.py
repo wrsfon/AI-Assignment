@@ -1,8 +1,8 @@
 # Breadth-first search
 import numpy as np
 # goal state: [ 4  6 19  1 21]
-goalState = np.array([3,25,20,17,4])
-startState = np.zeros((1,5), dtype=np.int)
+goalState = np.array([3,4,14,13])
+startState = np.zeros((1,4), dtype=np.int)
 print(goalState, startState)
 
 def isSameState(state1: np, state2: np):
@@ -13,7 +13,7 @@ def formatState(state: np):
     indexChecker = -1
     formatState = state
     while(indexChecker > arraySize): 
-        if formatState[0, indexChecker] == 32:
+        if formatState[0, indexChecker] == 16:
             formatState[0, indexChecker] = 0
             formatState[0, indexChecker-1] += 1
         indexChecker -= 1
@@ -28,6 +28,7 @@ def doBreadthFirstSearch(startState: np, goalState: np):
     while not isSameState(currentState, goalState):
         currentState[0, -1] += 1
         currentState = formatState(currentState)
+        print(currentState.tolist()[0])
     return currentState
 
     # Recursive way -> Not good
