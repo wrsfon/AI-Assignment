@@ -58,8 +58,8 @@ def clear(win):
 
 def probNgoal(n):
   prob = np.random.randint(1, 9, (n,n))
-  # goalState = np.random.random_integers(1, 2**n-1, n)
-  goalState = np.array([0, 0, 1, 7])
+  goalState = np.random.random_integers(1, 2**n-1, n)
+  # goalState = np.array([0, 0, 1, 7])
   goalPosition = np.asarray([list(map(int, bin(x)[2:].zfill(4))) for x in goalState])
 
   goalSum = [list(prob[i] * goalPosition[i]) for i in range(4)]
