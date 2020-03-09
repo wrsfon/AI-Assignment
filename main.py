@@ -5,17 +5,13 @@ from Node import *
 from Queue import *
 import pickle
 
-def resetColor(rect):
-    for i in range(0, len(rect[0])-1):
-        for j in range(0, len(rect[0])-1):
-                rect[i][j].setFill(color_rgb(0, 100, 255))
-
 def changeColor(rect, wip):
-    resetColor(rect)
     for i in range(0, len(rect[0])-1):
         for j in range(0, len(rect[0])-1):
             if wip[i][j] == 1:
                 rect[i][j].setFill(color_rgb(0, 220, 220))
+            else:
+                rect[i][j].setFill(color_rgb(0, 100, 255))
 
 def setDefault(win, n, data, sumX, sumY):
     rect = [[0 for x in range(n + 1)] for y in range(n + 1)]
@@ -51,22 +47,16 @@ def createUI(n):
     win = GraphWin("Pluszle", width, width)
     return win
 
-def clear(win):
-    for item in win.items[:]:
-        item.undraw()
-    win.update()
-
 def probNgoal(n):
   prob = np.random.randint(1, 9, (n,n))
   goalState = np.random.random_integers(1, 2**n-1, n)
-  # goalState = np.array([0, 0, 1, 7])
   goalPosition = np.asarray([list(map(int, bin(x)[2:].zfill(4))) for x in goalState])
 
   goalSum = [list(prob[i] * goalPosition[i]) for i in range(4)]
   sumX = np.sum(goalSum, axis=0)
   sumY = np.sum(goalSum, axis=1)
   
-  return prob, goalState, goalPosition, goalSum, sumX, sumY
+  return prob.tolist(), goalState.tolist(), goalPosition, goalSum, sumX.tolist(), sumY.tolist()
 
 def menu(win,winWidth,winHeight):
     logo = Image(Point(winWidth / 4, winHeight / 16 + 2), "images/logo_small.gif")
@@ -158,21 +148,11 @@ def doBreadthFirstSearch(startState: np, goalState: np, problemTable):
                             
 def main():
     global found
-    data = [[1, 0, 0, 1],
-            [0, 1, 1, 0],
-            [0, 1, 1, 0],
-            [1, 0, 0, 1]]
-    
-    sumX = [0, 0, 0, 0]
-    sumY = [0, 0, 0, 0]
+    initState = [[0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0]]
 
-    selectedPos = [[1, 0, 0, 1],
-                   [0, 1, 1, 0],
-                   [0, 1, 1, 0],
-                   [1, 0, 0, 1]]
-
-    goal = [0,0,0,0]
-    
     n = 4
 
     win = createUI(n)
@@ -183,15 +163,10 @@ def main():
     
     menu(win,winWidth,winHeight)
     
-    data, goal, selectedPos, goalSum, sumX, sumY = probNgoal(n)
-    data = data.tolist() # Convert array to list
-    sumX = sumX.tolist()
-    sumY = sumY.tolist()
-    goal = goal.tolist()
-    selectedPos = selectedPos.tolist()
+    data, goal, goalPos, goalSum, sumX, sumY = probNgoal(n)
             
     problemTable = setDefault(win, n, data, sumX, sumY)
-    changeColor(problemTable, selectedPos)
+    changeColor(problemTable, initState)
     print("Goal: ",goal)
     
     start_time = time.time()
@@ -200,24 +175,14 @@ def main():
     stop_time = time.time()
     print("Load tree time:",stop_time - start_time)
     
-    
 
     while True:
         key = win.getKey()
         
         if key == '0':
-            win.delete('all')
-            #clear(win)
             data, goal, selectedPos, goalSum, sumX, sumY = probNgoal(n)
-            data = data.tolist() # Convert array to list
-            sumX = sumX.tolist()
-            sumY = sumY.tolist()
-            goal = goal.tolist()
-            selectedPos = selectedPos.tolist()
 
-            menu(win,winWidth,winHeight)    
             problemTable = setDefault(win, n, data, sumX, sumY)
-            changeColor(problemTable, selectedPos)
             print("Goal: ",goal)
             # print("ID",id(problemTable))
           
