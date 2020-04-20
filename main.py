@@ -44,7 +44,7 @@ def setDefault(win, n, data, sumX, sumY):
 
 def createUI(n):
     width = 100*(n+3)
-    win = GraphWin("Pluszle", width, width)
+    win = GraphWin("Pluszle", width, width+40)
     return win
 
 def probNgoal(n):
@@ -64,13 +64,15 @@ def menu(win,winWidth,winHeight):
     random = Image(Point(winWidth / 2 + 200, winHeight / 16 + 2), "images/random.gif")
     random.draw(win)
     
-    imgMethod = Image(Point(winWidth / 4, winHeight - 50), "images/method.gif")
-    imgMet1 = Image(Point(winWidth / 2 + 120, winHeight - 65), "images/met1.gif")
-    imgMet2 = Image(Point(winWidth / 2 + 120, winHeight - 30), "images/met2.gif")
+    imgMethod = Image(Point(winWidth / 4, winHeight - 90), "images/method.gif")
+    imgMet1 = Image(Point(winWidth / 2 + 120, winHeight - 105), "images/met1.gif")
+    imgMet2 = Image(Point(winWidth / 2 + 120, winHeight - 70), "images/met2.gif")
+    imgMet3 = Image(Point(winWidth / 2 + 120, winHeight - 35), "images/met3.gif")
 
     imgMethod.draw(win)
     imgMet1.draw(win)
     imgMet2.draw(win)
+    imgMet3.draw(win)
 
 def convertIntToListBinary(goal):
     searchGoal = []
