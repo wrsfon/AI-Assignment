@@ -145,7 +145,13 @@ def doBreadthFirstSearch(startState: np, goalState: np, problemTable):
         changeColor(problemTable, convertIntToListBinary(currentState.tolist()[0]))
         
     return currentState
-                            
+
+def heuristicValue(data, sumY, state):
+    selectPos = np.asarray([list(map(int, bin(x)[2:].zfill(4))) for x in state])
+    sumSelectInRow = [sum(x) for x in selectPos*data]
+    hValue = sum([abs(x-y) for x,y in zip(sumY,sumSelectInRow)])
+    return hValue
+
 def main():
     global found
     initState = [[0, 0, 0, 0],
