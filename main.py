@@ -146,11 +146,76 @@ def doBreadthFirstSearch(startState: np, goalState: np, problemTable):
         
     return currentState
 
+def doHeuristicSearch(root, goal, problemTable):
+    global found
+    frontier = Queue()
+    frontier.enQueue(root)
+    costInFrontier = []
+    minIndex = 0
+
+    while frontier.size() > 0 and not found:
+        currentNode = frontier.deQueueWithIndex(minIndex)
+        if costInFrontier: del costInFrontier[minIndex]
+
+        changeColor(problemTable, convertIntToListBinary(currentNode.getData()))
+
+        if(currentNode.getData() == goal):
+            found = True
+
+        for i in range(0, currentNode.getBranchSize()):
+            node = currentNode.branch[i]
+            frontier.enQueue(node)
+            costInFrontier.append(node.getHeuristicValue())
+
+        minIndex = np.argmin(costInFrontier)
+
 def heuristicValue(data, sumY, state):
     selectPos = np.asarray([list(map(int, bin(x)[2:].zfill(4))) for x in state])
     sumSelectInRow = [sum(x) for x in selectPos*data]
     hValue = sum([abs(x-y) for x,y in zip(sumY,sumSelectInRow)])
     return hValue
+
+def createTree(data, sumY):
+    start_time = time.time()
+    root = Node([0, 0, 0, 0]) # Create a root node
+    depth = root.getSize() # depth of tree
+    branchingFactor = pow(2, depth) # branching factor of each node
+
+    for i in range(0, branchingFactor):
+        state = [0, 0, 0, i]
+        root.addBranch(Node(state, heuristicValue(data, sumY, state)))
+
+    for i in range(0, root.getBranchSize()):
+        for j in range(0, branchingFactor):
+            state = [0, 0, j, i]
+            root.branch[i].addBranch(Node(state, heuristicValue(data, sumY, state)))
+
+    for i in range(0, root.getBranchSize()):
+        for j in range(0, root.branch[i].getBranchSize()):
+            for k in range(0, branchingFactor):
+                state = [0, k, j, i]
+                root.branch[i].branch[j].addBranch(Node(state, heuristicValue(data, sumY, state)))
+
+    for i in range(0, root.getBranchSize()):
+        for j in range(0, root.branch[i].getBranchSize()):
+            for k in range(0, root.branch[i].branch[j].getBranchSize()):
+                for l in range(0, branchingFactor):
+                    state = [l, k, j, i]
+                    root.branch[i].branch[j].branch[k].addBranch(Node(state, heuristicValue(data, sumY, state)))
+
+    stop_time = time.time()
+    print("Create tree time:",stop_time - start_time)
+
+    with open('data-4d.tree', 'wb') as data_file:
+        pickle.dump(root, data_file, protocol=-1)
+
+def loadTree():
+    start_time = time.time()
+    with open('data-4d.tree', 'rb') as data_file:
+        root = pickle.load(data_file)
+    stop_time = time.time()
+    print("Load tree time:",stop_time - start_time)
+    return root
 
 def main():
     global found
@@ -170,27 +235,23 @@ def main():
     menu(win,winWidth,winHeight)
     
     data, goal, goalPos, goalSum, sumX, sumY = probNgoal(n)
-            
     problemTable = setDefault(win, n, data, sumX, sumY)
     changeColor(problemTable, initState)
     print("Goal: ",goal)
-    
-    start_time = time.time()
-    with open('data-4d.tree', 'rb') as data_file:
-        root = pickle.load(data_file)
-    stop_time = time.time()
-    print("Load tree time:",stop_time - start_time)
-    
+
+    createTree(data, sumY)
+    root = loadTree()
 
     while True:
         key = win.getKey()
         
         if key == '0':
             data, goal, selectedPos, goalSum, sumX, sumY = probNgoal(n)
-
             problemTable = setDefault(win, n, data, sumX, sumY)
             print("Goal: ",goal)
-            # print("ID",id(problemTable))
+
+            createTree(data, sumY)
+            root = loadTree()
           
         elif key=='1':
             print('BFS Search Algorithm')
@@ -201,7 +262,7 @@ def main():
             # Aomsin BFS
             goalState = np.array(goal)
             startState = np.zeros((1,len(goal)), dtype=np.int)
-            print(doBreadthFirstSearch(startState, goalState, problemTable))
+            doBreadthFirstSearch(startState, goalState, problemTable)
             
             stop_time = time.time()
             print("BFS  Search Time:" , stop_time - start_time, "s")
@@ -214,6 +275,15 @@ def main():
             iterativeDeepeningDepthFirstSearch(root, goal, problemTable)
             stop_time = time.time()
             print("IDFS Search Time:" , stop_time - start_time, "s")
+
+        elif key=='3':
+            print('Heuristic Search')
+            # print(convertIntToListBinary(goal))
+            found = False
+            start_time = time.time()
+            doHeuristicSearch(root, goal, problemTable)
+            stop_time = time.time()
+            print("Heuristic Search Time:" , stop_time - start_time, "s")
             
         elif key=='Escape':
             win.close()

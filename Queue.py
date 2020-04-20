@@ -18,4 +18,7 @@ class Queue:
         self.items +=[element]
 
     def deQueue(self):
-        return self.items.pop(0) 
+        return self.items.pop(0)
+
+    def deQueueWithIndex(self, index):
+        return self.items.pop(index)

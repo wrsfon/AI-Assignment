@@ -1,13 +1,17 @@
 class Node:
-    def __init__(self, data = None):
+    def __init__(self, data = None, heuristicValue = 0):
         self.data = data
         self.branch = []
+        self.heuristicValue = heuristicValue
 
     def hasNext(self):
         return self.branch != []
     
     def getData(self):
         return self.data
+
+    def getHeuristicValue(self):
+        return self.heuristicValue
 
     def getSize(self):
         return len(self.data)
